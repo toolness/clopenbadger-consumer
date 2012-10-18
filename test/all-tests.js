@@ -13,8 +13,9 @@ defineTests([
       "description": "Like a champion, you logged in...",
       "criteria": "Can log into a site that uses Persona for auth.",
       "image": "https://wiki.mozilla.org/images/b/bb/Merit-badge.png",
-      "behavior": "LOGGED_IN",
-      "score": 1,
+      "behaviors": [
+        {"name": "LOGGED_IN", "score": 1}
+      ],
       "prerequisites": []
     }
   };

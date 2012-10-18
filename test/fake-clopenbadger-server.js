@@ -9,11 +9,14 @@ define(["jquery"], function($) {
     var awards = [];
     Object.keys(available).forEach(function(badgeName) {
       var badge = available[badgeName];
-      var behaviorName = badge.behavior;
       if (badgeName in earned)
         return;
-      if (behaviors[badge.behavior] >= badge.score)
-        awards.push(badgeName);
+      for (var i = 0; i < badge.behaviors.length; i++) {
+        var info = badge.behaviors[i];
+        if (!(info.name in behaviors) || behaviors[info.name] < info.score)
+          return;
+      }
+      awards.push(badgeName);
     });
     return awards;
   }
