@@ -26,6 +26,17 @@ define(["jquery", "backbone-events"], function($, BackboneEvents) {
       availableBadges: undefined,
       earnedBadges: undefined,
       unreadBadgeCount: undefined,
+      getBadges: function() {
+        var badges = [];
+        Object.keys(self.availableBadges).forEach(function(shortname) {
+          var badge = {};
+          var badgeTypeInfo = self.availableBadges[shortname];
+          var badgeInstanceInfo = self.earnedBadges[shortname] || {};
+          badge.isEarned = (shortname in self.earnedBadges);
+          badges.push($.extend(badge, badgeTypeInfo, badgeInstanceInfo));
+        });
+        return badges;
+      },
       markAllBadgesAsRead: function() {
         if (self.unreadBadgeCount == 0)
           return;

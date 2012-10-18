@@ -112,4 +112,34 @@ defineTests([
     });
     badger.credit('LOGGED_IN');
   });
+  
+  test("getBadges() works for unearned badges", function() {
+    Server.flushResponses();
+    deepEqual(badger.getBadges(), [{
+      "behaviors": [{"name": "LOGGED_IN", "score": 1}],
+      "criteria": "Can log into a site that uses Persona for auth.",
+      "description": "Like a champion, you logged in...",
+      "image": "https://wiki.mozilla.org/images/b/bb/Merit-badge.png",
+      "name": "First Login",
+      "prerequisites": [],
+      "isEarned": false
+    }]);
+  });
+  
+  test("getBadges() works for earned badges", function() {
+    badger.credit("LOGGED_IN");
+    Server.flushResponses();
+    deepEqual(badger.getBadges(), [{
+      "behaviors": [{"name": "LOGGED_IN", "score": 1}],
+      "criteria": "Can log into a site that uses Persona for auth.",
+      "description": "Like a champion, you logged in...",
+      "image": "https://wiki.mozilla.org/images/b/bb/Merit-badge.png",
+      "name": "First Login",
+      "prerequisites": [],
+      "isEarned": true,
+      "issuedOn": 12345,
+      "isRead": false,
+      "assertionUrl": "http://clopenbadger/foo@bar.org/FIRST_LOGIN",
+    }]);
+  });
 });
