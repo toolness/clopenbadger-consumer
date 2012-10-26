@@ -26,7 +26,8 @@ define(["jquery"], function($) {
       try {
         return fn.apply(this, arguments);
       } catch (e) {
-        console.log(e.toString());
+        if (window.console)
+          console.log(e.toString());
         throw e;
       }
     };
@@ -70,7 +71,8 @@ define(["jquery"], function($) {
         var path = originalOptions.url.slice(urlPrefix.length);
         var authInfo = {prn: ""};
 
-        console.log(options.type, options.url);
+        if (window.console)
+          console.log(options.type, options.url);
         if (parseToken && originalOptions.data &&
             originalOptions.data.auth)
           authInfo = JSON.parse(originalOptions.data.auth);
