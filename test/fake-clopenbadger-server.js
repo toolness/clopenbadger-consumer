@@ -47,10 +47,12 @@ define(["jquery"], function($) {
     earnedBadges: {},
     behaviors: {},
     flushResponses: function() {
-      var responses = queuedResponses;
-      queuedResponses = [];
-      clearTimeout(flushResponsesTimeout);
-      responses.forEach(function(fn) { fn(); });
+      while (queuedResponses.length) {
+        var responses = queuedResponses;
+        queuedResponses = [];
+        clearTimeout(flushResponsesTimeout);
+        responses.forEach(function(fn) { fn(); });
+      }
     },
     setup: function setup(options) {
       var urlPrefix = options.urlPrefix;
