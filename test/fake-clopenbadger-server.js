@@ -43,6 +43,7 @@ define(["jquery"], function($) {
   });
   
   var self = {
+    responseTime: 0,
     availableBadges: {},
     earnedBadges: {},
     behaviors: {},
@@ -100,7 +101,8 @@ define(["jquery"], function($) {
                 }
               });
               clearTimeout(flushResponsesTimeout);
-              flushResponsesTimeout = setTimeout(self.flushResponses, 0);
+              flushResponsesTimeout = setTimeout(self.flushResponses,
+                                                 self.responseTime);
             }
             
             function respondWithJSON(obj, status, statusText) {
