@@ -105,8 +105,11 @@ define(["jquery", "backbone-events"], function($, BackboneEvents) {
 
     ready.done(function() {
       updateunreadBadgeCount(self);
+      self.trigger("ready");
       self.trigger("change:availableBadges");
       self.trigger("change:earnedBadges");
+    }).fail(function() {
+      self.trigger("error");
     });
     
     return self;

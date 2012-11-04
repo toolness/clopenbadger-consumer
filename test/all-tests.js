@@ -112,6 +112,24 @@ defineTests([
     });
     badger.credit('LOGGED_IN');
   });
+
+  test("error event is not fired on ready success", function() {
+    badger.on("error", function() { ok(false, "error event fired"); });
+    badger.on("ready", function() { ok(true, "ready event fired"); });
+    Server.flushResponses();
+  });
+  
+  test("error event is fired on ready failure", function() {
+    Server.modifyQueuedResponses(function(info) {
+      if (info.path == '/v1/badges') {
+        info.response.status = 500;
+        info.response.statusText = "Internal Server Error";
+      }
+    });
+    badger.on("error", function() { ok(true, "error event fired"); });
+    badger.on("ready", function() { ok(false, "ready event fired"); });
+    Server.flushResponses();
+  });
   
   test("getBadges() works for unearned badges", function() {
     Server.flushResponses();

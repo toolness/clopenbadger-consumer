@@ -46,12 +46,18 @@ define(["jquery"], function($) {
     availableBadges: {},
     earnedBadges: {},
     behaviors: {},
+    modifyQueuedResponses: function(cb) {
+      queuedResponses.forEach(cb);
+    },
     flushResponses: function() {
       while (queuedResponses.length) {
         var responses = queuedResponses;
         queuedResponses = [];
         clearTimeout(flushResponsesTimeout);
-        responses.forEach(function(fn) { fn(); });
+        responses.forEach(function(info) {
+          var r = info.response;
+          info.callback(r.status, r.statusText, r.responses, r.headers);
+        });
       }
     },
     setup: function setup(options) {
@@ -81,8 +87,17 @@ define(["jquery"], function($) {
         return {
           send: logExceptions(function(headers, completeCallback) {
             function respond(status, statusText, responses, headers) {
-              queuedResponses.push(function() {
-                completeCallback(status, statusText, responses, headers);
+              queuedResponses.push({
+                callback: completeCallback,
+                path: path,
+                options: options,
+                originalOptions: originalOptions,
+                response: {
+                  status: status,
+                  statusText: statusText,
+                  responses: responses,
+                  headers: headers
+                }
               });
               clearTimeout(flushResponsesTimeout);
               flushResponsesTimeout = setTimeout(self.flushResponses, 0);
