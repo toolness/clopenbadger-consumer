@@ -1,6 +1,21 @@
 "use strict";
 
 define(["jquery", "backbone-events"], function($, BackboneEvents) {
+  function proxyAjaxThroughPostMessage(PPX, url) {
+    var Request = PPX.buildClientConstructor(url);
+    var utils = PPX.utils;
+    url = utils.absolutifyURL(url);
+    $.ajaxPrefilter(function(options, originalOptions, jqXHR) {
+      if (((options.crossDomain && !$.support.cors) ||
+           options.usePostMessage) &&
+          utils.isSameOrigin(url, utils.absolutifyURL(options.url))) {
+        options.xhr = Request;
+        options.crossDomain = false;
+        jqXHR.isProxiedThroughPostMessage = true;
+      }
+    });
+  }
+  
   function countUnreadBadges(earned) {
     var unread = 0;
     Object.keys(earned).forEach(function(shortname) {
@@ -22,6 +37,7 @@ define(["jquery", "backbone-events"], function($, BackboneEvents) {
     var server = options.server;
     var token = options.token;
     var email = options.email;
+    var PPX = options.PPX || window.PPX;
     var self = {
       availableBadges: undefined,
       earnedBadges: undefined,
@@ -44,6 +60,7 @@ define(["jquery", "backbone-events"], function($, BackboneEvents) {
           $.ajax({
             type: 'POST',
             url: server + '/v1/user/mark-all-badges-as-read',
+            contentType: 'application/x-www-form-urlencoded',
             dataType: 'json',
             data: {
               auth: token,
@@ -67,6 +84,7 @@ define(["jquery", "backbone-events"], function($, BackboneEvents) {
           $.ajax({
             type: 'POST',
             url: server + '/v1/user/behavior/' + shortname + '/credit',
+            contentType: 'application/x-www-form-urlencoded',
             dataType: 'json',
             data: {
               auth: token,
@@ -87,6 +105,8 @@ define(["jquery", "backbone-events"], function($, BackboneEvents) {
     };
     
     BackboneEvents.mixin(self);
+    if (!$.support.cors && 'postMessage' in window && PPX)
+      proxyAjaxThroughPostMessage(PPX, server + "/ppx/");
 
     var availableReq = $.getJSON(server + '/v1/badges', function(data) {
       // TODO: Check for errors.
