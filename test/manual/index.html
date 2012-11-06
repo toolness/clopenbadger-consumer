@@ -8,6 +8,19 @@ body {
   font-size: 12px;
 }
 
+code {
+  font-family: Monaco, monospace;
+  font-size: 10px;
+}
+
+code.success {
+  color: green;
+}
+
+code.error {
+  color: red;
+}
+
 input[type="text"] {
   width: 500px;
 }
@@ -21,7 +34,7 @@ ul.log li {
   margin: 6px 0;
 }
 
-ul.log code {
+ul.log code.event {
   background: lightgray;
   padding: 2px 4px;
   border-radius: 4px;
@@ -45,8 +58,8 @@ a {
   <p>The Clopenbadger instance is now exposed as <code>window.badger</code>.
     Use your browser's JS console to interact with it.</p>
   <p>All events 
-    emitted from it will be logged below in reverse chronological
-    order.</p>
+    emitted from it, as well as information about ajax requests, will be
+    logged below in reverse chronological order.</p>
   <ul class="log"></ul>
 </div>
 <script src="sjcl.js"></script>
@@ -60,6 +73,33 @@ require.baseUrl = "../..";
 define("testing-panel", function(require) {
   var $ = require("jquery");
   var Clopenbadger = require("clopenbadger");
+  var panel = $("#testing-panel");
+
+  function stripQuery(url) {
+    var qsIndex = url.indexOf("?");
+    if (qsIndex == -1)
+      return url;
+    return url.slice(0, qsIndex);
+  }
+  
+  function log(element) {
+    $(element).prependTo($(".log", panel)).hide().slideDown();
+  }
+  
+  function logAjax() {
+    function msg(type, xhr, settings) {
+      var html = '<li><code class="ajax ' + type + '">' +
+                 settings.type + ' ' + stripQuery(settings.url) +
+                 ' ' + xhr.status + '</code></li>';
+      return $(html);
+    }
+    
+    $(document.body).ajaxError(function(evt, xhr, settings, err) {
+      log(msg("error", xhr, settings));
+    }).ajaxSuccess(function(evt, xhr, settings) {
+      log(msg("success", xhr, settings));
+    });
+  }
   
   return function showTestingPanel(serverURL, jwt, email) {
     var badger = window.badger = new Clopenbadger({
@@ -67,16 +107,16 @@ define("testing-panel", function(require) {
       token: jwt,
       email: email
     });
-    var panel = $("#testing-panel").fadeIn();
-    var log = $(".log", panel);
     
     $(".server-url", panel).text(serverURL);
     $(".email", panel).text(email);
     
     badger.on("all", function(name) {
-      $('<li><code>' + name + '</code> triggered.</li>')
-        .prependTo(log).hide().slideDown();
+      log($('<li><code class="event">' + name + '</code> triggered.</li>'));
     });
+
+    panel.fadeIn();
+    logAjax();
   };
 });
 
