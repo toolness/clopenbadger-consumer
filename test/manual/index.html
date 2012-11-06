@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+body {
+  width: 800px;
+  margin: 0 auto;
+  font-family: "Helvetica Neue", sans-serif;
+  font-size: 12px;
+}
+
+input[type="text"] {
+  width: 500px;
+}
+
+ul.log {
+  list-style-type: none;
+  padding: 0;
+}
+
+ul.log li {
+  margin: 6px 0;
+}
+
+ul.log code {
+  background: lightgray;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+a {
+  color: inherit;
+}
+</style>
+<title>Clopenbadger Manual Test</title>
+<h1>Clopenbadger Manual Test</h1>
+<form id="configure" style="display: none">
+  <p>Server URL: <input type="text" id="server-url" value="http://evening-fjord-7837.herokuapp.com:80"></p>
+  <p>Email address: <input type="text" id="email" value="foo@bar.org"></p>
+  <p>Token Secret: <input type="text" id="secret"></p>
+  <input type="submit" value="Start Manual Testing">
+</form>
+<div id="testing-panel" style="display: none">
+  <p>Using server <code class="server-url"></code> and email
+    <code class="email"></code>. (<a href="?">change this</a>)</p>
+  <p>The Clopenbadger instance is now exposed as <code>window.badger</code>.
+    Use your browser's JS console to interact with it.</p>
+  <p>All events 
+    emitted from it will be logged below in reverse chronological
+    order.</p>
+  <ul class="log"></ul>
+</div>
+<script src="sjcl.js"></script>
+<script src="jwt.js"></script>
+<script src="../require-config.js"></script>
+<script>
+require.baseUrl = "../..";
+</script>
+<script src="../../vendor/require.min.js"></script>
+<script>
+define("testing-panel", function(require) {
+  var $ = require("jquery");
+  var Clopenbadger = require("clopenbadger");
+  
+  return function showTestingPanel(serverURL, jwt, email) {
+    var badger = window.badger = new Clopenbadger({
+      server: serverURL,
+      token: jwt,
+      email: email
+    });
+    var panel = $("#testing-panel").fadeIn();
+    var log = $(".log", panel);
+    
+    $(".server-url", panel).text(serverURL);
+    $(".email", panel).text(email);
+    
+    badger.on("all", function(name) {
+      $('<li><code>' + name + '</code> triggered.</li>')
+        .prependTo(log).hide().slideDown();
+    });
+  };
+});
+
+define("config-form", function(require) {
+  var $ = require("jquery");
+  
+  var PLENTY_OF_SECONDS = 100000;
+
+  function makeJWT(serverURL, email, secret) {
+    var myOrigin = window.location.protocol + "//" + window.location.host;
+    var claims = {
+      iss: myOrigin,
+      aud: serverURL,
+      prn: email,
+      exp: Math.floor(Date.now() / 1000) + PLENTY_OF_SECONDS
+    };
+    var token = new jwt.WebToken(JSON.stringify(claims),
+                                 JSON.stringify({typ:'JWT', alg: 'HS256'}));
+    return token.serialize(secret);
+  }
+  
+  return function showConfigForm() {
+    $("#configure").fadeIn().submit(function() {
+      var email = $("#email").val();
+      var serverURL = $("#server-url").val();
+      var secret = $("#secret").val();
+      var jwt = makeJWT(serverURL, email, secret);
+
+      if (serverURL.indexOf(':') == -1) {
+        alert("Please include port number in server URL.");
+        return false;
+      }
+      if (!(serverURL && jwt && email)) {
+        alert("Please fill out all the form fields!");
+        return false;
+      }
+      window.location = "?" + $.param({
+        server: serverURL,
+        jwt: jwt,
+        email: email
+      });
+      return false;
+    });
+  };
+});
+
+define("main", [
+  "testing-panel",
+  "config-form"
+], function(showTestingPanel, showConfigForm) {
+  function getQueryArgs() {
+    var query = window.location.search.substring(1);
+    var args = query.split('&');
+    var result = {};
+    for (var i = 0; i < args.length; i++) {
+      var pair = args[i].split('=');
+      result[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+    }
+    return result;
+  }
+
+  return function main() {
+    var queryArgs = getQueryArgs();
+
+    if (queryArgs.jwt) {
+      showTestingPanel(queryArgs.server, queryArgs.jwt, queryArgs.email);
+    } else {
+      showConfigForm();
+    }
+  }
+});
+
+require(["main"], function(main) { main(); });
+</script>
