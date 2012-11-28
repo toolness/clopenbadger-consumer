@@ -12,6 +12,10 @@ implementation. If your project already uses Backbone, you can use a
 [much smaller version][smaller-events] of the library, or you can create
 your own shim that uses your own eventing library as an implementation.
 
+Optionally, this library supports the [postmessage-proxied-xhr][PPX] (PPX)
+library to allow browsers without CORS support to communicate with
+a Clopenbadger server on a different origin.
+
 ## Usage
 
 For any details not specified by the following documentation, see 
@@ -88,6 +92,7 @@ All of the following properties are read-only.
 * `earnedBadges` - An object mapping earned badge shortnames to their
   issuance metadata.
 
+  [PPX]: https://github.com/toolness/postmessage-proxied-xhr
   [Clopenbadger API]: https://github.com/mozilla/clopenbadger/wiki/API
   [requirejs]: http:///requirejs.org/
   [Backbone.Events]: http://documentcloud.github.com/backbone/#Events
