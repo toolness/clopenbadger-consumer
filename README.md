@@ -92,8 +92,17 @@ All of the following properties are read-only.
 * `earnedBadges` - An object mapping earned badge shortnames to their
   issuance metadata.
 
+## Testing
+
+The module at `test/fake-clopenbadger-server.js` provides a class that uses
+[jQuery Ajax Transport][ajaxTransport] middleware to run a fake
+Clopenbadger "server" in the embedding webpage and return fake
+responses. This is used by Clopenbadger's test suite, but may also be
+useful for testing your own code.
+
   [PPX]: https://github.com/toolness/postmessage-proxied-xhr
   [Clopenbadger API]: https://github.com/mozilla/clopenbadger/wiki/API
   [requirejs]: http:///requirejs.org/
   [Backbone.Events]: http://documentcloud.github.com/backbone/#Events
   [smaller-events]: https://github.com/mozilla/friendlycode/blob/gh-pages/js/backbone-events.js
+  [ajaxTransport]: http://api.jquery.com/extending-ajax/#Transports

@@ -1,5 +1,23 @@
 "use strict";
 
+// This module uses jQuery Ajax Transport middleware to provide
+// a fake implementation of a Clopenbadger server to any client
+// that uses jQuery ajax methods. This allows test suites and other
+// code to "talk" to a Clopenbadger server and even simulate certain
+// kinds of edge cases (such as network failure) without having to
+// do much work.
+//
+// The implementation is capable of keeping track of a single user's 
+// unread badge count, earned badges, and behaviors. Every call to
+// the module's setup() function resets the statistics.
+//
+// The module currently has the following limitations:
+//
+// * It only tracks statistics for one user.
+// * Statistics are not preserved across page loads.
+// * The "progress" key is not included in any responses to 
+//   POST /v1/user/behavior/<shortname>/credit.
+
 define(["jquery"], function($) {
   function copyObject(obj) {
     return JSON.parse(JSON.stringify(obj));
